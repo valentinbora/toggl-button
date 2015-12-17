@@ -964,12 +964,12 @@ var TogglButton = {
 
       chrome.permissions.contains(permission, function (result) {
         if (result) {
-
+          /*
           chrome.tabs.executeScript({
             code: 'document.body.style.backgroundColor="red"'
           });
           console.log("FILE: " + domain.file);
-
+          */
           chrome.tabs.insertCSS(tabId, {file: "styles/style.css"});
           chrome.tabs.executeScript(tabId, {file: "scripts/common.js"});
           chrome.tabs.executeScript(tabId, {file: "scripts/content/" + domain.file});
@@ -995,14 +995,15 @@ var TogglButton = {
 
     origin = Db.getOrigin(domain);
 
-    if (!!origin) {
-      file = origin.split(".")[0] + ".js";
-    } else {
-      file = domain.split(".")[0] + ".js";
+    file = !!origin ? origin : domain;
+
+    // if we have something like help.github.com we need only github
+    if (file.split(".").length > 2) {
+      file = file.substr(file.indexOf(".") + 1).split(".")[0];
     }
 
     return {
-      file: file,
+      file: file + ".js",
       origins: [
         "*://" + domain + "/*"
       ]
