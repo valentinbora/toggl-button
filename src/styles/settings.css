@@ -162,7 +162,8 @@ header .active, header li:hover {
 #permissions-list li:last-child {
   border-bottom: none;
 }
-#permissions-list li a, #permissions-list li div {
+
+#permissions-list li div {
   height: 22px;
   line-height: 22px;
   vertical-align: middle;
@@ -170,6 +171,14 @@ header .active, header li:hover {
 }
 
 #permissions-list li a{
-  width: 22px;
+  float: left;
+  margin-top: 6px;
+  margin-right: 6px;
+  width: 12px;
+  height: 12px;
+  background: url(../images/trash_can.png) no-repeat center;
 }
 
+#permissions-list li a:hover{
+  opacity: .8;
+}
