@@ -1,4 +1,4 @@
-/*jslint indent: 2, unparam: true*/
+/*jslint indent: 2, unparam: true, plusplus: true*/
 /*global document: false, window: false, XMLHttpRequest: false, chrome: false, btoa: false, localStorage:false */
 "use strict";
 
@@ -11,6 +11,10 @@ var Settings = {
   $nanny: null,
   $pomodoroMode: null,
   $pomodoroSound: null,
+  $permissionsList: document.querySelector("#permissions-list"),
+  $newPermission: document.querySelector("#new-permission"),
+  $originsSelect: document.querySelector("#origins"),
+  origins: null,
   showPage: function () {
     document.querySelector("#version").innerHTML = "<a href='http://toggl.github.io/toggl-button' title='Change log'>(" + chrome.runtime.getManifest().version + ")</a>";
     Settings.setFromTo();
@@ -24,6 +28,7 @@ var Settings = {
     document.querySelector("#pomodoro-interval").value = Db.get("pomodoroInterval");
 
     TogglButton.analytics("settings", null);
+    Settings.loadSitesIntoList();
   },
   setFromTo: function () {
     var fromTo = Db.get("nannyFromTo").split("-");
@@ -45,6 +50,23 @@ var Settings = {
   },
   saveSetting: function (value, type) {
     Settings.toggleSetting(null, value, type);
+  },
+  loadSitesIntoList: function () {
+    var html = "",
+      html_list = "",
+      url,
+      i;
+    chrome.permissions.getAll(function (results) {
+      Settings.origins = results.origins;
+      for (i = Settings.origins.length - 1; i >= 0; i--) {
+        url = Settings.origins[i].replace("*://*.", "").replace("*://", "").replace("/*", "");
+        html = "<option id='origin' data-id='" + i + "'>" + url + "</option>" + html;
+        html_list = '<li id="' + Settings.origins[i] + '"><a href="#" data-id="' + i + '" data-host="' + url + '">X</a><div>' + url + '</div></li>' + html_list;
+      }
+
+      document.querySelector("#origins").innerHTML = html;
+      Settings.$permissionsList.innerHTML = html_list;
+    });
   }
 };
 
@@ -119,4 +141,39 @@ document.addEventListener('DOMContentLoaded', function (e) {
     Settings.saveSetting(+(document.querySelector('#pomodoro-interval').value), "toggle-pomodoro-interval");
 
   });
+
+  document.querySelector('#add-permission').addEventListener('click', function (e) {
+    var domain = "*://" + Settings.$newPermission.value + "/",
+      permission = {origins: [domain]},
+      o = Settings.$originsSelect;
+
+    chrome.permissions.request(permission, function (result) {
+      if (result) {
+        Db.setOrigin(Settings.$newPermission.value, o.options[o.selectedIndex].innerHTML);
+        Settings.$newPermission.value = "";
+      }
+      Settings.loadSitesIntoList();
+      if (result) {
+        document.location.hash = domain;
+      }
+    });
+  });
+
+  document.querySelector('#permissions-list').addEventListener('click', function (e) {
+    var permission = {origins: [Settings.origins[e.target.getAttribute("data-id")]]};
+    chrome.permissions.contains(permission, function (allowed) {
+      if (allowed) {
+        chrome.permissions.remove(permission, function (result) {
+          if (result) {
+            console.log('Revoked "' + Settings.origins[e.target.getAttribute("data-id")] + '" host permission.');
+            Settings.loadSitesIntoList();
+            Db.removeOrigin(e.target.getAttribute("data-host"));
+          }
+        });
+      } else {
+        console.log('No "' + Settings.origins[e.target.getAttribute("data-id")] + '" host permission found.');
+      }
+    });
+  });
+
 });

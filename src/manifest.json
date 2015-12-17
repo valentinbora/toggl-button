@@ -31,10 +31,15 @@
     "chrome_style": true
   },
   "permissions": [
+    "tabs",
     "alarms",
     "contextMenus",
     "notifications",
-    "idle",
+    "idle"
+  ],
+  "optional_permissions": [
+    "*://*/",
+    "*://in.ts/*",
     "*://*.toggl.com/*",
     "*://toggl.com/*",
     "*://*.teamweek.com/*",

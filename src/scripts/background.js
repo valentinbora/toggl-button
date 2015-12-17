@@ -955,7 +955,61 @@ var TogglButton = {
     }
 
     return true;
+  },
+
+  tabUpdated: function (tabId, changeInfo, tab) {
+    if (changeInfo.status === "complete") {
+      var domain = TogglButton.extractDomain(tab.url),
+        permission = {origins: domain.origins};
+
+      chrome.permissions.contains(permission, function (result) {
+        if (result) {
+          /*
+          chrome.tabs.executeScript({
+            code: 'document.body.style.backgroundColor="red"'
+          });
+          console.log("FILE: " + domain.file);
+          */
+
+          chrome.tabs.insertCSS(tabId, {file: "styles/style.css"});
+          chrome.tabs.executeScript(tabId, {file: "scripts/common.js"});
+          chrome.tabs.executeScript(tabId, {file: "scripts/content/" + domain.file});
+        }
+      });
+    }
+  },
+
+  extractDomain: function (url) {
+    var domain,
+      origin,
+      file;
+
+    //find & remove protocol (http, ftp, etc.) and get domain
+    if (url.indexOf("://") > -1) {
+      domain = url.split('/')[2];
+    } else {
+      domain = url.split('/')[0];
+    }
+
+    //find & remove port number
+    domain = domain.split(':')[0];
+
+    origin = Db.getOrigin(domain);
+
+    if (!!origin) {
+      file = origin.split(".")[0] + ".js";
+    } else {
+      file = domain.split(".")[0] + ".js";
+    }
+
+    return {
+      file: file,
+      origins: [
+        "*://" + domain + "/*"
+      ]
+    };
   }
+
 };
 
 chrome.contextMenus.create({"title": "Start timer", "contexts": ["page"], "onclick": TogglButton.contextMenuClick});
@@ -964,6 +1018,7 @@ chrome.contextMenus.create({"title": "Start timer with description '%s'", "conte
 TogglButton.fetchUser();
 TogglButton.triggerNotification();
 TogglButton.startCheckingUserState();
+chrome.tabs.onUpdated.addListener(TogglButton.tabUpdated);
 chrome.alarms.onAlarm.addListener(TogglButton.pomodoroAlarmStop);
 chrome.extension.onMessage.addListener(TogglButton.newMessage);
 chrome.notifications.onClosed.addListener(TogglButton.processNotificationEvent);
