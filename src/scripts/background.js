@@ -964,12 +964,11 @@ var TogglButton = {
 
       chrome.permissions.contains(permission, function (result) {
         if (result) {
-          /*
+
           chrome.tabs.executeScript({
             code: 'document.body.style.backgroundColor="red"'
           });
           console.log("FILE: " + domain.file);
-          */
 
           chrome.tabs.insertCSS(tabId, {file: "styles/style.css"});
           chrome.tabs.executeScript(tabId, {file: "scripts/common.js"});

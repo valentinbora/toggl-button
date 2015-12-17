@@ -55,13 +55,41 @@ var Settings = {
     var html = "",
       html_list = "",
       url,
+      name,
       i;
+
+    function compare(a, b) {
+      var urlA = a.replace("*://*.", "").replace("*://", "").replace("/*", ""),
+        urlB = b.replace("*://*.", "").replace("*://", "").replace("/*", ""),
+        nameA = urlA,
+        nameB = urlB;
+
+      if (urlA.split(".").length > 2) {
+        nameA = urlA.substr(urlA.indexOf(".") + 1);
+      }
+
+      if (urlB.split(".").length > 2) {
+        nameB = urlB.substr(urlB.indexOf(".") + 1);
+      }
+
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      return 0;
+    }
+
     chrome.permissions.getAll(function (results) {
-      Settings.origins = results.origins;
+      Settings.origins = results.origins.sort(compare);
       for (i = Settings.origins.length - 1; i >= 0; i--) {
-        url = Settings.origins[i].replace("*://*.", "").replace("*://", "").replace("/*", "");
-        html = "<option id='origin' data-id='" + i + "'>" + url + "</option>" + html;
-        html_list = '<li id="' + Settings.origins[i] + '"><a href="#" data-id="' + i + '" data-host="' + url + '">X</a><div>' + url + '</div></li>' + html_list;
+        name = url = Settings.origins[i].replace("*://*.", "").replace("*://", "").replace("/*", "");
+        if (url.split(".").length > 2) {
+          name = url.substr(url.indexOf(".") + 1);
+        }
+        html = "<option id='origin' data-id='" + i + "' value='" + url + "'>" + name + "</option>" + html;
+        html_list = '<li id="' + Settings.origins[i] + '"><a href="#" data-id="' + i + '" data-host="' + url + '"></a><div>' + name + '</div></li>' + html_list;
       }
 
       document.querySelector("#origins").innerHTML = html;
@@ -149,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
     chrome.permissions.request(permission, function (result) {
       if (result) {
-        Db.setOrigin(Settings.$newPermission.value, o.options[o.selectedIndex].innerHTML);
+        Db.setOrigin(Settings.$newPermission.value, o.value);
         Settings.$newPermission.value = "";
       }
       Settings.loadSitesIntoList();
