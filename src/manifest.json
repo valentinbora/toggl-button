@@ -62,6 +62,7 @@
     "*://*.sifterapp.com/*",
     "*://docs.google.com/*",
     "*://*.redmine.org/*",
+    "*://pm.nexibeo.com/*",
     "*://*.myjetbrains.com/*",
     "*://*.capsulecrm.com/*",
     "*://*.zendesk.com/*",
@@ -160,6 +161,7 @@
         "*://*.sifterapp.com/*",
         "*://docs.google.com/*",
         "*://*.redmine.org/*",
+        "*://pm.nexibeo.com/*",
         "*://*.myjetbrains.com/*",
         "*://*.capsulecrm.com/*",
         "*://*.zendesk.com/*",
@@ -330,7 +332,10 @@
       "js": ["scripts/content/google-docs.js"]
     },
     {
-      "matches": ["*://*.redmine.org/*"],
+      "matches": [
+        "*://*.redmine.org/*",
+        "*://pm.nexibeo.com/*"
+      ],
       "js": ["scripts/content/redmine.js"]
     },
     {
